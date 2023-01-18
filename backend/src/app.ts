@@ -12,7 +12,7 @@ export function App(opts = {}) {
 
 function addRoutes(app: FastifyInstance) {
     app.get('/', async function (_request: FastifyRequest, _reply: FastifyReply) {
-        return {hello: 'world!'};
+        return {hello: 'world! TEST'};
     });
 
     app.get('/users', async () => {
