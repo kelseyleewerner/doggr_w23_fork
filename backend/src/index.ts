@@ -1,17 +1,11 @@
-import http from "http";
 
-const server = http.createServer( (request, response) => {
-    console.log("Received Request");
-    response.writeHead(200, { "Content-Type": "text/html"});
-    response.write("Hello world");
-    response.end();
-})
+import * as dotenv from "dotenv";
+dotenv.config();
 
-// port 80 443
+import fs from "fs/promises";
+import path from "path";
 
-server.listen(3000, () => {
-    console.log("Listening...");
-})
+
 
 // import {App} from "./app";
 // import {FastifyInstance} from "fastify";
