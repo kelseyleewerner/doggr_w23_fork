@@ -2,10 +2,44 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
+import cors from "cors";
+
 import fs from "fs/promises";
 import path from "path";
+import {Nastify} from "./nastify";
 
+const app = Nastify();
 
+app.use("/about", cors());
+
+app.use("/about", (req, res, next) => {
+    res.send("I am the about page");
+    next();
+});
+
+app.use("/", async (req, res, next) => {
+
+    const indexFile = await fs.readFile(path.resolve(__dirname, 'public', 'index.html'))
+        .catch(err => {
+            console.error(err);
+            //send error result - 500!
+            res.setHeader('Content-Type', 'text/html');
+            res.status(500).send("Error occurred", err);
+            return next();
+        });
+
+    res.status(200).send(indexFile);
+    return next();
+
+});
+
+async function main() {
+    const server = await app.listen(8080, () => {
+        console.log("Server is running");
+    });
+}
+
+void main();
 
 // import {App} from "./app";
 // import {FastifyInstance} from "fastify";
