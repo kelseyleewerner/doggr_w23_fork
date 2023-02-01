@@ -4,11 +4,22 @@ import path from "path";
 import {request} from "./request";
 import {response} from "./response";
 import {checkMiddlewareInputs, matchPath} from "./lib/helpers";
+import {Router} from "./router/router";
 
 //https://www.expressjs.com/en/starter/hello-world.html?sort=newest?country=en_us
 
+// path ("/admin")
+// parameters (":userId")
+// http verb (GET POST)
+// handler fn (describes what to do with a request at a given path)
+// /admin
+// -GET => execute myAdminFnHandler
+// -POST => execute MyPostFnHandler
+// Router => Route[] => PathHandler(Maps GET/POST to a specific function handler)
+
 export function Nastify() {
     const middlewares = [];
+    const router = new Router();
 
     async function listen(port = 8080, cb) {
         return http
@@ -16,7 +27,7 @@ export function Nastify() {
 
                 request(req);
                 response(res);
-                handleMiddleware(req, res);
+                handleMiddleware(req, res, () => router.handle(req, res));
 
 
             }).listen({ port }, () => {
@@ -29,7 +40,8 @@ export function Nastify() {
             });
     }
 
-    function handleMiddleware(req, res) {
+    function handleMiddleware(req, res, cb) {
+        req.handler = cb;
         const next = findNext(req, res);
         next();
     }
@@ -59,6 +71,7 @@ export function Nastify() {
                 next();
             } else {
                 // we're done with middleware execution
+                req.handler(req, res);
             }
         }
 
@@ -86,8 +99,14 @@ export function Nastify() {
        });
     }
 
-    function get() {}
-    function post() {}
+    function get(...args) {
+        const { path, handler } = checkMiddlewareInputs(args);
+        return router.get(path, handler);
+    }
+    function post(...args) {
+        const { path, handler } = checkMiddlewareInputs(args);
+        return router.post(path, handler);
+    }
 
     return {
         listen,

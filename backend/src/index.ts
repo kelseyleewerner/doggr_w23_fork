@@ -7,17 +7,44 @@ import cors from "cors";
 import fs from "fs/promises";
 import path from "path";
 import {Nastify} from "./nastify";
+//import { Fastify } from "./fastify";
 
 const app = Nastify();
 
-app.use("/about", cors());
+console.log(app);
 
-app.use("/about", (req, res, next) => {
+app.use("/about", cors());
+app.use("/get", cors());
+
+app.get("/about", (req, res) => {
     res.send("I am the about page");
-    next();
 });
 
-app.use("/", async (req, res, next) => {
+app.post("/about", (req, res) => {
+    res.send("I am POST REQUEST");
+})
+
+app.get("/users", (req, res) => {
+
+})
+
+
+/*
+
+app.get('/users", (req, res) => {
+
+}
+
+app.post('/users", (req, res) => {
+
+}
+
+app.put('/users", (req, res) => {
+
+}
+ */
+
+app.get("/", async (req, res) => {
 
     const indexFile = await fs.readFile(path.resolve(__dirname, 'public', 'index.html'))
         .catch(err => {
@@ -25,12 +52,22 @@ app.use("/", async (req, res, next) => {
             //send error result - 500!
             res.setHeader('Content-Type', 'text/html');
             res.status(500).send("Error occurred", err);
-            return next();
         });
 
     res.status(200).send(indexFile);
-    return next();
+});
 
+app.get('/get', async (req, res) => {
+    const indexFile = await fs.readFile(path.resolve(__dirname, 'public', 'index.html'))
+        .catch(err => {
+            console.error(err);
+            //send error result - 500!
+            res.setHeader('Content-Type', 'text/html');
+            return res.status(500).send("Error occurred", err);
+
+        });
+
+    return res.status(200).send(indexFile);
 });
 
 async function main() {
