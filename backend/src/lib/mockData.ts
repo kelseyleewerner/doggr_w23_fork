@@ -1,3 +1,4 @@
+// Mock data file used for testing basic endpoint functionality
 const usersData = [{
     id: 1,
     name: 'John Snow',
