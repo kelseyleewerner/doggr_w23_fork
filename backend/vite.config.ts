@@ -1,4 +1,6 @@
 // @ts-nocheck
+// noinspection JSUnusedGlobalSymbols
+
 import * as path from "path";
 import {loadEnv} from "vite";
 import {VitePluginNode} from "vite-plugin-node";
@@ -13,7 +15,7 @@ const vitestConfig: VitestUserConfigInterface = {
 		reporters: "verbose",
 		include: ["./test/**/*.{test,spec}.{ts,mts,cts,tsx}"],
 		includeSource: ["src/**/*.ts", "src/"],
-		onConsoleLog(log, type) {
+		onConsoleLog(_log, _type) {
 			return true;
 		}
 	},
@@ -52,8 +54,7 @@ export default defineConfig({
 			// this has to match the last line in src/server.ts where we export our final app
 			exportName: "doggr",
 
-			// Optional, default: 'esbuild'
-			// Casey - I'm using swc because it's Rust based
+			// Optional, default: 'esbuild', using swc for TypeORM support
 			tsCompiler: "swc",
 		}),
 	],

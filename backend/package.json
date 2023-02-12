@@ -5,8 +5,7 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "vite --mode development",
-    "debug": "vite-node src/server.ts",
+    "dev": "vite-node -w src/index.ts",
     "build": "vite build --emptyOutDir -c vite.config.ts -m production",
     "startProd": "http-server -p 8080 build/",
     "lint": "eslint . --ext .ts",
@@ -16,7 +15,6 @@
   },
   "scriptsComments": {
     "dev": "Starts the development server using vite-plugin-node for rapid iteration.",
-    "debug": "Starts the development server with vite-node for attaching a debugger",
     "build": "Builds the app for production.",
     "startProd": "Runs the built app in production mode. Note this requires globally-installed npm package http-server (pnpm i -g http-server).",
     "lint": "Lints the project.",
@@ -34,8 +32,10 @@
     "fastify": "^4.11.0",
     "fastify-cors": "^6.1.0",
     "fastify-env": "^2.2.0",
-    "mongoose": "^6.9.1",
-    "pino": "^8.8.0"
+    "fastify-plugin": "^4.5.0",
+    "pino": "^8.8.0",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.3.12"
   },
   "devDependencies": {
     "@swc/cli": "^0.1.60",

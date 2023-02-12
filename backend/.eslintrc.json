@@ -28,7 +28,12 @@
     ],
     "indent": [
       "error",
-      "tab"
+      "tab",
+      {
+        "ignoredNodes": [
+          "PropertyDefinition"
+        ]
+      }
     ],
     "no-mixed-spaces-and-tabs": "error",
     "semi": "error",
@@ -75,6 +80,7 @@
     "@typescript-eslint/no-implicit-any": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "import/no-extraneous-dependencies": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
     "no-return-await": "error"
   }
 }
