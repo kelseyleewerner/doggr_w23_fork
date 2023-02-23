@@ -4,6 +4,7 @@ import {FastifyInstance, FastifyReply, FastifyRequest, RouteShorthandOptions} fr
 import {User} from "./db/models/user";
 import {IPHistory} from "./db/models/ip_history";
 import {Profile} from "./db/models/profile";
+import {ILike, LessThan, Not} from "typeorm";
 
 /**
  * App plugin where we construct our routes
@@ -29,8 +30,36 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 	 * @name get/users
 	 * @function
 	 */
-	app.get("/users", async (req, reply) => {
-		let users = await app.db.user.find();
+	app.get("/users", async (request: FastifyRequest, reply: FastifyReply) => {
+		// This will return all users along with their associated profiles and ip histories via relations
+		// https://typeorm.io/find-options
+		let users = await app.db.user.find({
+			// This allows you to define which fields appear/do not appear in your result.
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				updated_at: true,
+				created_at: false,
+			},
+			// This defines which of our OneToMany/ManyToMany relations we want to return along with each user
+			relations: {
+				profiles: true,
+				ips: {
+					// We don't need to return user as a part of ip_history because we already know the user
+					user: false
+				},
+			},
+			where: {
+				// This will filter our results only to users with an id less than 70.  How cute is this?!?
+				id: LessThan(70),
+				profiles: {
+					// People who name their dog this deserve to be left out, and people naming other species this definitely do
+					// No offense, people with pets named spot
+					name: Not(ILike("spot")),
+				}
+			}
+		});
 		reply.send(users);
 	});
 
