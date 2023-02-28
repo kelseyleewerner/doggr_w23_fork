@@ -7,6 +7,8 @@ import { IPHistory } from "../models/ip_history";
 import { Initialize1676281754950 } from "../migrations/1676281754950-Initialize";
 import { Profile } from "../models/profile.js";
 import { ProfilesMigration1676586883555 } from "../migrations/1676586883555-ProfilesMigration.js";
+import { Match } from "../models/match.js";
+import {AddMatches1677583994719} from "../migrations/1677583994719-AddMatches";
 
 dotenv.config();
 
@@ -14,23 +16,25 @@ dotenv.config();
 const env = process.env;
 
 export const AppDataSource = new DataSource({
-	type: "postgres",
-	host: env.VITE_DB_HOST,
-	port: Number(env.VITE_DB_PORT),
-	username: env.VITE_DB_USER,
-	password: env.VITE_DB_PASS,
-	database: env.VITE_DB_NAME,
-	// entities are used to tell TypeORM which tables to create in the database
-	entities: [
-		User,
-		IPHistory,
-		Profile
-	],
-	migrations: [
-		Initialize1676281754950,
-		ProfilesMigration1676586883555
-
-	],
-	// DANGER DANGER our convenience will nuke production data!
-	synchronize: false
+    type: "postgres",
+    host: env.VITE_DB_HOST,
+    port: Number(env.VITE_DB_PORT),
+    username: env.VITE_DB_USER,
+    password: env.VITE_DB_PASS,
+    database: env.VITE_DB_NAME,
+    // entities are used to tell TypeORM which tables to create in the database
+    entities: [
+        User,
+        IPHistory,
+        Profile,
+        Match
+    ],
+    migrations: [
+        Initialize1676281754950,
+        ProfilesMigration1676586883555,
+      AddMatches1677583994719,
+        
+    ],
+    // DANGER DANGER our convenience will nuke production data!
+    synchronize: false
 });

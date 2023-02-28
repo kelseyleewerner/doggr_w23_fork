@@ -5,6 +5,7 @@ import {User} from "./db/models/user";
 import {IPHistory} from "./db/models/ip_history";
 import {Profile} from "./db/models/profile";
 import {ILike, LessThan, Not} from "typeorm";
+import {Match} from "./db/models/match";
 
 /**
  * App plugin where we construct our routes
@@ -137,8 +138,8 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 		const myUser = await app.db.user.findOneByOrFail({});
 
-	  const newProfile = new Profile();
-	  newProfile.name = name;
+		const newProfile = new Profile();
+		newProfile.name = name;
 		newProfile.picture = "ph.jpg";
 		newProfile.user = myUser;
 
@@ -159,7 +160,7 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 		await reply.send(JSON.stringify(res));
 	});
 
-	app.put("/profiles", async(request, reply) => {
+	app.put("/profiles", async (request, reply) => {
 		const myProfile = await app.db.profile.findOneByOrFail({});
 
 
@@ -169,6 +170,95 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 		//manually JSON stringify due to fastify bug with validation
 		// https://github.com/fastify/fastify/issues/4017
 		await reply.send(JSON.stringify(res));
+	});
+
+	// HW2 additions (1-6)
+	app.get("/matches", async (req, reply) => {
+		let matches = await app.db.match.find({
+			relations: ["matcher", "matchee"],
+		});
+
+		reply.send(matches);
+
+	});
+
+	app.post("/match", async (req: any, reply) => {
+		const myMatch = new Match();
+		myMatch.matcher = req.body.matcherID;
+		myMatch.matchee = req.body.matcheeID;
+
+		await myMatch.save();
+
+		await reply.send(JSON.stringify(myMatch));
+	});
+
+	app.delete("/match", async (req: any, reply) => {
+		const matcherID = req.body.matcherID;
+		const matcheeID = req.body.matcheeID;
+
+		const myMatch = await app.db.match.findOneOrFail({
+			relations: ['matcher', 'matchee'],
+			select: ['id'],
+			where: {
+				matcher: {
+					id: matcherID,
+				},
+				matchee: {
+					id: matcheeID,
+				},
+			},
+		});
+
+		let res = await app.db.match.remove(myMatch);
+		await reply.send(JSON.stringify(res));
+	});
+
+	app.delete("/matches", async (req: any, reply) => {
+		const matcherId = req.body.matcherID;
+		const myMatch = await app.db.match.find({
+			relations: ['matcher'],
+			select: ['id'],
+			where: {
+				matcher: {
+					id: matcherId,
+				}
+			},
+		});
+
+		let res = await app.db.match.remove(myMatch);
+		await reply.send(JSON.stringify(res));
+	});
+
+	app.get("/match/:matcherId", async (req: any, reply) => {
+		const matcherId = req.params.matcherId;
+
+		let matches = await app.db.match.find({
+			relations: ['matcher', 'matchee'],
+			where: {
+				matcher: {
+					id: matcherId,
+				},
+			}
+		});
+
+		const matchees = matches.map(m => m.matchee);
+		reply.send(matchees);
+	});
+
+	app.get("/matchee/:matcheeId", async (req: any, reply) => {
+		const matcheeId = req.params.matcheeId;
+
+		let matches = await app.db.match.find({
+			relations: ['matcher', 'matchee'],
+			where: {
+				matchee: {
+					id: matcheeId,
+				},
+			}
+		});
+
+		const matchers = matches.map(m => m.matcher);
+		await reply.send(matchers);
 	});
 
 }
