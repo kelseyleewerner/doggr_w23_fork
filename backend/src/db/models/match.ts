@@ -3,6 +3,7 @@ import {
 	BaseEntity,
 	Column,
 	CreateDateColumn,
+	DeleteDateColumn,
 	Entity, JoinTable,
 	ManyToMany,
 	ManyToOne,
@@ -31,9 +32,11 @@ export class Match extends BaseEntity {
 	@ManyToOne((type) => Profile, (profile: Profile) => profile.matches)
 	matchee!: Relation<Profile>; // The ! is Typescript's non-nullable operator and works like nullable: false above
 
-
 	@CreateDateColumn()
 	created_at: string;
+
+	@DeleteDateColumn()
+	deleted_at?: string;
 }
 
 export function MatchBuilder(matcher: Profile, matchee: Profile): Match {

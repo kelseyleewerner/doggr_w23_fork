@@ -6,6 +6,8 @@ import {IPHistory} from "./db/models/ip_history";
 import {Profile} from "./db/models/profile";
 import {ILike, LessThan, Not} from "typeorm";
 import {Match} from "./db/models/match";
+import {Message} from "./db/models/message";
+import {readFileSync} from "node:fs";
 
 /**
  * App plugin where we construct our routes
@@ -209,7 +211,8 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 			},
 		});
 
-		let res = await app.db.match.remove(myMatch);
+		// BONUS 3
+		let res = await app.db.match.softRemove(myMatch);
 		await reply.send(JSON.stringify(res));
 	});
 
@@ -225,7 +228,7 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 			},
 		});
 
-		let res = await app.db.match.remove(myMatch);
+		let res = await app.db.match.softRemove(myMatch);
 		await reply.send(JSON.stringify(res));
 	});
 
@@ -259,6 +262,166 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 		const matchers = matches.map(m => m.matcher);
 		await reply.send(matchers);
+	});
+
+	// BONUS 1
+
+	app.get("/messages", async (req, reply) => {
+		let messages = await app.db.message.find({
+			relations: ['sender', 'recipient']
+		});
+		reply.send(messages);
+	});
+
+	app.get("/message/:id", async (req: any, reply: FastifyReply) => {
+		const senderId = req.params.id;
+
+		let messages = await app.db.message.find({
+			relations: ['sender', 'recipient'],
+			select: {
+				deleted_at: false,
+			},
+			where: {
+				sender: {
+					id: senderId,
+				},
+			}
+		});
+
+		const recipients = messages.map(m => m.recipient);
+		reply.send(recipients);
+	});
+
+	/**
+	 * Route listing all senders from whom a given "matchee" has received a message
+	 * @name get/recipient
+	 * @function
+	 */
+	app.get("/recipient/:id", async (req: any, reply: FastifyReply) => {
+
+		const id = req.params.id;
+
+		let messages = await app.db.message.find({
+			relations: ['sender', 'recipient'],
+			select: {
+				deleted_at: false,
+			},
+			where: {
+				recipient: {
+					id
+				},
+			}
+		});
+
+		const senders = messages.map(m => m.sender);
+		reply.send(senders);
+	});
+
+	/**
+	 * Create a new message between given sender and recipient
+	 * @name post/message
+	 * @function
+	 */
+	app.post("/message", async (req: any, reply: FastifyReply) => {
+
+		const senderId = req.body.senderID;
+
+		const newMessage = new Message();
+		newMessage.sender = senderId;
+		newMessage.recipient = req.body.recipientID;
+		newMessage.message = req.body.message;
+
+		// Check for bad words
+		const badwordsString = readFileSync("./src/plugins/badwords.txt", {encoding: 'utf-8'});
+		const badwords = badwordsString.split('\r\n');
+
+		let badword = "";
+		// https://stackoverflow.com/questions/47543879/string-includes-has-a-word-on-a-ban-list
+		for (let i = 0; i <= badwords.length; i++) {
+			if (newMessage.message.toLowerCase().includes(badwords[i])) {
+				badword = badwords[i];
+				break;
+			}
+		}
+
+		if (badword !== "") {
+			// Update user table, increment badwords counter
+			const user = await User.findOneByOrFail({id: senderId});
+			user.badwords++;
+			await user.save();
+
+			await reply.status(500).send({
+				message: "Some people somewhere consider one or more of the words in your message to be evil, sorry!",
+			});
+		} else {
+			await newMessage.save();
+			await reply.send(JSON.stringify(newMessage));
+		}
+	});
+
+
+	/**
+	 * Delete all messages between a given sender and recipient.
+	 * @name delete/message
+	 * @function
+	 */
+	app.delete("/message", async (req: any, reply: FastifyReply) => {
+		// BONUS 2
+		const password = import.meta.env.ADMIN_PW;
+		const chk_pw = req.body.admin_password;
+		if (chk_pw != password) {
+			await reply.status(500).send({
+				message: "Password missing or incorrect",
+			});
+		}
+
+		const senderID = req.body.senderID;
+		const recipientID = req.body.recipientID;
+
+		const myMessage = await app.db.message.find({
+			relations: ['sender', 'recipient'],
+			select: ['id'],
+			where: {
+				sender: {
+					id: senderID,
+				},
+				recipient: {
+					id: recipientID,
+				},
+			},
+		});
+
+		let res = await app.db.message.softRemove(myMessage);
+		await reply.send(JSON.stringify(res));
+	});
+
+	/**
+	 * Remove all messages a user has sent
+	 * @name delete/messages
+	 * @function
+	 */
+	app.delete("/messages", async (req: any, reply: FastifyReply) => {
+		const pw = import.meta.env.ADMIN_PW;
+		const user_pw = req.body.pw;
+		if (user_pw != pw) {
+			await reply.status(500).send({
+				message: "Password incorrect",
+			});
+		}
+
+		const senderID = req.body.senderID;
+		const myMsg = await app.db.message.find({
+			relations: ['sender'],
+			select: ['id'],
+			where: {
+				sender: {
+					id: senderID,
+				}
+			},
+		});
+
+		let res = await app.db.message.softRemove(myMsg);
+		await reply.send(JSON.stringify(res));
 	});
 
 }
