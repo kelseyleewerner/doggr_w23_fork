@@ -1,20 +1,20 @@
 import './App.css'
 import { Link, Route, Routes } from 'react-router-dom';
 import Home from './components/Home';
-import Converter from './components/Converter';
+import Match from './components/Match';
 
 function App() {
     return (
         <div className="App">
             <nav>
                 <div className="menu">
-                    <Link to="/">Home</Link>
-                    <Link to="/converter">Converter</Link>
+                  <Link to="/">Home</Link>
+                  <Link to="/match">Match</Link>
                 </div>
             </nav>
             <Routes>
-                <Route path="/converter" element={<Converter />} />
-                <Route path="/" element={<Home />} />
+              <Route path="/match" element={<Match/>}/>
+              <Route path="/" element={<Home/>}/>
             </Routes>
         </div>
     )

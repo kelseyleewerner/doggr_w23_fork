@@ -1,16 +1,16 @@
 import { useState } from 'react';
 
-function Converter() {
+function Match() {
     const [value, setValue] = useState<number>();
     const [origin, setOrigin] = useState<string>();
     const isDisabled = (base: string) => (origin !== undefined && origin !== base);
 
     const updateValue = (baseName: string, base: number) =>
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            // @ts-ignore
-            if (e.target.value === "") {
-                setValue((oldValue) => undefined);
-                setOrigin((oldOrigin) => undefined);
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+          // @ts-ignore
+          if (e.target.value === "") {
+              setValue((oldValue) => undefined);
+              setOrigin((oldOrigin) => undefined);
             } else {
                 setValue((oldValue) => {
                     // @ts-ignore
@@ -49,4 +49,4 @@ function Converter() {
     </div>
 }
 
-export default Converter;
+export default Match;
