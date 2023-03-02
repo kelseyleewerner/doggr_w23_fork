@@ -1,10 +1,10 @@
 export type State = {
-	currentProfile: Profile,
-	likeHistory: Array<Profile>,
-	passHistory: Array<Profile>,
+	currentProfile: ProfileType,
+	likeHistory: Array<ProfileType>,
+	passHistory: Array<ProfileType>,
 };
 
-export type Profile = {
+export type ProfileType = {
 	imgUri: string,
 	thumbUri: string,
 	name: string,

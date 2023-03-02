@@ -1,52 +1,39 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
+import initialState, {getRandomProfile} from "../initialState";
+import {Profile} from "./Profile";
+import {Title} from "./Home";
 
 function Match() {
-    const [value, setValue] = useState<number>();
-    const [origin, setOrigin] = useState<string>();
-    const isDisabled = (base: string) => (origin !== undefined && origin !== base);
+    let [currentProfile, setCurrentProfile] = useState(initialState.currentProfile);
+    let [likeHistory, setLikeHistory] = useState(initialState.likeHistory);
 
-    const updateValue = (baseName: string, base: number) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-          // @ts-ignore
-          if (e.target.value === "") {
-              setValue((oldValue) => undefined);
-              setOrigin((oldOrigin) => undefined);
-            } else {
-                setValue((oldValue) => {
-                    // @ts-ignore
-                    const newValue = parseInt(e.target.value, base);
-                    return isNaN(newValue) ? oldValue : newValue;
-                });
-                setOrigin((oldOrigin) => baseName);
-            }
-        }
+    useEffect(() => {
+        console.log("-- App rerenders --");
+    });
 
-    return <div className="Converter">
-        <label>
-            Decimal:
-            <input type="string"
-                   value={value?.toString(10) || ""}
-                   name="decimal"
-                   onChange={updateValue("decimal", 10)}
-                   disabled={isDisabled("decimal")}/>
-        </label>
-        <label>
-            Hexadecimal:
-            <input type="string"
-                   value={value?.toString(16) || ""}
-                   name="hex"
-                   onChange={updateValue("hex", 16)}
-                   disabled={isDisabled("hex")}/>
-        </label>
-        <label>
-            Binary:
-            <input type="string"
-                   value={value?.toString(2) || ""}
-                   name="binary"
-                   onChange={updateValue("binary", 2)}
-                   disabled={isDisabled("binary")}/>
-        </label>
-    </div>
+    let onLikeButtonClick = () => {
+        // this keeps allocations and copies to a minimum
+        let newLikeHistory = [...likeHistory, currentProfile];
+        let newProfile = getRandomProfile();
+        setCurrentProfile(newProfile);
+        setLikeHistory(newLikeHistory);
+    };
+
+    let onPassButtonClick = () => {
+        let newCurrentProfile = getRandomProfile();
+        setCurrentProfile(newCurrentProfile);
+    };
+
+    let profile = <Profile {...currentProfile}
+                           onLikeButtonClick={onLikeButtonClick}
+                           onPassButtonClick={onPassButtonClick}/>
+
+    return (
+      <>
+          <Title/>
+          {profile}
+      </>
+    );
 }
 
 export default Match;

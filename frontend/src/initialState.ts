@@ -1,14 +1,14 @@
-import {State, Profile} from "./types/DoggrTypes";
+import {State, ProfileType} from "./types/DoggrTypes";
 
 
-const initialState: { likeHistory: Profile[]; currentProfile: Profile } = {
+const initialState: { likeHistory: ProfileType[]; currentProfile: ProfileType } = {
 	currentProfile: getRandomProfile(),
 	likeHistory: [getRandomProfile(), getRandomProfile()],
 };
 
 export default initialState;
 
-export function getRandomProfile(): Profile {
+export function getRandomProfile(): ProfileType {
 	const idNum = Math.random() * 10000;
 
 	return {
