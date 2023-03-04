@@ -1,8 +1,10 @@
+import {Users} from "./User";
+
 export default function Home() {
   return (<div>
       <Title/>
       <Subtitle/>
-
+			<Users/>
     </div>
   );
 }

@@ -4,7 +4,6 @@ import {FastifyInstance, FastifyReply, FastifyRequest, RouteShorthandOptions} fr
 import {User} from "./db/models/user";
 import {IPHistory} from "./db/models/ip_history";
 import {Profile} from "./db/models/profile";
-import {ILike, LessThan, Not} from "typeorm";
 import {Match} from "./db/models/match";
 import {Message} from "./db/models/message";
 import {readFileSync} from "node:fs";
@@ -52,18 +51,24 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 					// We don't need to return user as a part of ip_history because we already know the user
 					user: false
 				},
-			},
-			where: {
-				// This will filter our results only to users with an id less than 70.  How cute is this?!?
-				id: LessThan(70),
-				profiles: {
-					// People who name their dog this deserve to be left out, and people naming other species this definitely do
-					// No offense, people with pets named spot
-					name: Not(ILike("spot")),
-				}
 			}
 		});
 		reply.send(users);
+	});
+
+	// Example of using QueryBuilder to perform more complex SQL queries
+	app.get("/userMax", async (request: FastifyRequest, reply: FastifyReply) => {
+		const query = app.db.user
+			.createQueryBuilder("users")
+			.select("MAX(users.id)", "maxID");
+
+		// Typescript solution to "This function might return null/undefined"
+		// We just label it here as possibly undefined in Typescript's typing
+		const result: ({ maxID: number  } | undefined) = await query.getRawOne();
+
+		// This '?' is the second half of Typescript's null/undef handling and will throw exception if null
+		reply.send(result?.maxID);
+		console.log("Max user ID in database is: " + result);
 	});
 
 	// CRUD impl for users
