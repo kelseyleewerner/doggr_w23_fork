@@ -5,11 +5,13 @@ import {
 	CreateDateColumn,
 	Entity, JoinTable,
 	ManyToMany,
+	OneToMany,
 	ManyToOne,
 	PrimaryGeneratedColumn,
 	Relation
 } from "typeorm";
 import {User} from "./user";
+import {Match} from "./match";
 
 /**
  * Profile model - This is for interacting with the profile table
@@ -28,12 +30,24 @@ export class Profile extends BaseEntity {
 	picture: string;
 
 	@ManyToOne((type) => User, (user: User) => user.profiles, {
-		//adding an IPHistory will also add associated User if it is new, somewhat useless in this example
 		cascade: true,
-		// if we delete a User, also delete their IP History
 		onDelete: "CASCADE"
 	})
 	user: Relation<User>;
+
+	@OneToMany((type) => Match, (match) => match.matcher, {
+		cascade: true,
+		onDelete: "CASCADE"
+	})
+	matches: Relation<Match[]>;
+
+	@OneToMany((type) => Match, (match) => match.matchee, {
+		//adding an IPHistory will also add associated User if it is new, somewhat useless in this example
+		cascade: true,
+		// if we delete a profile, remove their matches as well
+		onDelete: "CASCADE"
+	})
+	matchedBy: Relation<Match[]>;
 
 	@CreateDateColumn()
 	created_at: string;
