@@ -1,39 +1,43 @@
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import initialState, {getRandomProfile} from "../initialState";
 import {Profile} from "./Profile";
 import {Title} from "./Home";
+import {AuthContext, useAuth} from "../services/AuthService";
+
 
 function Match() {
-    let [currentProfile, setCurrentProfile] = useState(initialState.currentProfile);
-    let [likeHistory, setLikeHistory] = useState(initialState.likeHistory);
 
-    useEffect(() => {
-        console.log("-- App rerenders --");
-    });
+	let [currentProfile, setCurrentProfile] = useState(initialState.currentProfile);
+	let [likeHistory, setLikeHistory] = useState(initialState.likeHistory);
 
-    let onLikeButtonClick = () => {
-        // this keeps allocations and copies to a minimum
-        let newLikeHistory = [...likeHistory, currentProfile];
-        let newProfile = getRandomProfile();
-        setCurrentProfile(newProfile);
-        setLikeHistory(newLikeHistory);
-    };
+	const {token} = useAuth();
 
-    let onPassButtonClick = () => {
-        let newCurrentProfile = getRandomProfile();
-        setCurrentProfile(newCurrentProfile);
-    };
+	useEffect(() => {
+		console.log("-- App rerenders --");
+	});
 
-    let profile = <Profile {...currentProfile}
-                           onLikeButtonClick={onLikeButtonClick}
-                           onPassButtonClick={onPassButtonClick}/>
+	let onLikeButtonClick = () => {
+		// this keeps allocations and copies to a minimum
+		let newLikeHistory = [...likeHistory, currentProfile];
+		let newProfile = getRandomProfile();
+		setCurrentProfile(newProfile);
+		setLikeHistory(newLikeHistory);
+	};
 
-    return (
-      <>
-          <Title/>
-          {profile}
-      </>
-    );
+	let onPassButtonClick = () => {
+		let newCurrentProfile = getRandomProfile();
+		setCurrentProfile(newCurrentProfile);
+	};
+
+	let profile = <Profile {...currentProfile}
+												 onLikeButtonClick={onLikeButtonClick}
+												 onPassButtonClick={onPassButtonClick}/>;
+
+	return (
+		<>
+			<Title/>   {profile}
+			<div>Authenticated as {token}</div>
+		</> );
 }
 
 export default Match;
