@@ -1,7 +1,7 @@
 /** @module Server */
 
 // This will let us use our basic middlewares now, then transition to hooks later
-import fastifyMiddie from "@fastify/middie";
+
 import staticFiles from "@fastify/static";
 import Fastify, {FastifyInstance} from "fastify";
 import path from "path";
@@ -9,8 +9,8 @@ import {getDirName} from "./lib/helpers";
 import logger from "./lib/logger";
 import {doggr_routes} from "./routes";
 import DbPlugin from "./plugins/database";
-
-
+import {AuthPlugin} from "./plugins/auth";
+import cors from "@fastify/cors";
 
 /**
  * This is our main "Create App" function.  Note that it does NOT start the server, this only creates it
@@ -27,14 +27,33 @@ export async function buildApp(useLogging: boolean) {
 		: Fastify({logger: false});
 
 	try {
-		// add express-like 'app.use' middleware support
-		await app.register(fastifyMiddie);
+
+		await app.register(cors, {
+			origin: (origin, cb) => {
+				// If we're in dev mode, no CORS necessary, let *everything* pass
+				if (import.meta.env.DEV) {
+					cb(null, true);
+					return;  }
+				const hostname = new URL(origin).hostname;
+				// Otherwise check to see if hostnames match, or are local connections and allow those too
+				if (hostname === "localhost" || hostname === '127.0.0.1' || hostname === import.meta.env.VITE_IP_ADDR) {
+					//  Request from localhost will pass
+					cb(null, true);
+					return;  }
+				// Generate an error on other origins, disabling access
+				cb(new Error("Not allowed"), false);
+			}
+		});
 
 		// add static file handling
 		await app.register(staticFiles, {
 			root: path.join(getDirName(import.meta), "../public"),
 			prefix: "/public/",
 		});
+
+		// MUST COME BEFORE OUR ROUTES because auth needs to be defined by then!
+		app.log.info("Creating authorization framework...");
+		await app.register(AuthPlugin);
 
 		// Adds all of our Router's routes to the app
 		app.log.info("Registering routes");

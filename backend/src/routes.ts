@@ -1,5 +1,4 @@
 /** @module Routes */
-import cors from "cors";
 import {FastifyInstance, FastifyReply, FastifyRequest, RouteShorthandOptions} from "fastify";
 import {User} from "./db/models/user";
 import {IPHistory} from "./db/models/ip_history";
@@ -7,6 +6,7 @@ import {Profile} from "./db/models/profile";
 import {Match} from "./db/models/match";
 import {Message} from "./db/models/message";
 import {readFileSync} from "node:fs";
+import {compare, hashSync} from "bcrypt";
 
 /**
  * App plugin where we construct our routes
@@ -14,9 +14,6 @@ import {readFileSync} from "node:fs";
  */
 export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
-	// Middleware
-	// TODO: Refactor this in favor of fastify-cors
-	app.use(cors());
 
 	/**
 	 * Route replying to /test path for test-testing
@@ -64,7 +61,7 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 		// Typescript solution to "This function might return null/undefined"
 		// We just label it here as possibly undefined in Typescript's typing
-		const result: ({ maxID: number  } | undefined) = await query.getRawOne();
+		const result: ({ maxID: number } | undefined) = await query.getRawOne();
 
 		// This '?' is the second half of Typescript's null/undef handling and will throw exception if null
 		reply.send(result?.maxID);
@@ -105,15 +102,29 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 	 * @returns {IPostUsersResponse} user and IP Address used to create account
 	 */
 	app.post<{
-		Body: IPostUsersBody,
+		Body: {
+			name: string,
+			email: string,
+			password: string,
+		},
 		Reply: IPostUsersResponse
 	}>("/users", post_users_opts, async (req, reply: FastifyReply) => {
 
 		const {name, email} = req.body;
 
+		let {password} = req.body;
+
+		// if we're in dev mode and pw isn't already bcrypt encrypted, do so now for convenience
+		if (import.meta.env.DEV) {
+			if (!password.startsWith("$2a$")) {
+				password = hashSync(password, 2);
+			}
+		}
+
 		const user = new User();
 		user.name = name;
 		user.email = email;
+		user.password = password;
 
 		const ip = new IPHistory();
 		ip.ip = req.ip;
@@ -124,6 +135,33 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 		//manually JSON stringify due to fastify bug with validation
 		// https://github.com/fastify/fastify/issues/4017
 		await reply.send(JSON.stringify({user, ip_address: ip.ip}));
+	});
+
+	app.post<{
+		Body: {
+			email: string,
+			password: string,  //reminder this is already encrypted from the frontend!
+		}
+	}>("/login", async (req, reply) => {
+		try {
+			const {email, password} = req.body;
+
+			let theUser = await app.db.user.findOneByOrFail({email});
+
+			const hashCompare = await compare(password, theUser.password);
+
+			if (hashCompare) {
+				// User has authenticated successfully!
+				const token = app.jwt.sign({email});
+				await reply.send({token});
+			} else {
+				app.log.info("Password validation failed");
+				await reply.status(401).send("Incorrect Password");
+			}
+		} catch (err) {
+			app.log.error(err);
+			await reply.status(500).send("Error: " + err);
+		}
 	});
 
 
@@ -180,7 +218,9 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 	});
 
 	// HW2 additions (1-6)
-	app.get("/matches", async (req, reply) => {
+	app.get("/matches", {
+		onRequest: [app.auth]
+	},async (req, reply) => {
 		let matches = await app.db.match.find({
 			relations: ["matcher", "matchee"],
 		});
@@ -189,7 +229,9 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 	});
 
-	app.post("/match", async (req: any, reply) => {
+	app.post("/match", {
+		onRequest: [app.auth]
+	},async (req: any, reply) => {
 		const myMatch = new Match();
 		myMatch.matcher = req.body.matcherID;
 		myMatch.matchee = req.body.matcheeID;
@@ -199,7 +241,9 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 		await reply.send(JSON.stringify(myMatch));
 	});
 
-	app.delete("/match", async (req: any, reply) => {
+	app.delete("/match", {
+		onRequest: [app.auth]
+	},async (req: any, reply) => {
 		const matcherID = req.body.matcherID;
 		const matcheeID = req.body.matcheeID;
 
@@ -343,7 +387,8 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 		let badword = "";
 		// https://stackoverflow.com/questions/47543879/string-includes-has-a-word-on-a-ban-list
 		for (let i = 0; i <= badwords.length; i++) {
-			if (newMessage.message.toLowerCase().includes(badwords[i])) {
+			if (newMessage.message.toLowerCase()
+				.includes(badwords[i])) {
 				badword = badwords[i];
 				break;
 			}
@@ -355,9 +400,10 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 			user.badwords++;
 			await user.save();
 
-			await reply.status(500).send({
-				message: "Some people somewhere consider one or more of the words in your message to be evil, sorry!",
-			});
+			await reply.status(500)
+				.send({
+					message: "Some people somewhere consider one or more of the words in your message to be evil, sorry!",
+				});
 		} else {
 			await newMessage.save();
 			await reply.send(JSON.stringify(newMessage));
@@ -375,9 +421,10 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 		const password = import.meta.env.ADMIN_PW;
 		const chk_pw = req.body.admin_password;
 		if (chk_pw != password) {
-			await reply.status(500).send({
-				message: "Password missing or incorrect",
-			});
+			await reply.status(500)
+				.send({
+					message: "Password missing or incorrect",
+				});
 		}
 
 		const senderID = req.body.senderID;
@@ -409,9 +456,10 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 		const pw = import.meta.env.ADMIN_PW;
 		const user_pw = req.body.pw;
 		if (user_pw != pw) {
-			await reply.status(500).send({
-				message: "Password incorrect",
-			});
+			await reply.status(500)
+				.send({
+					message: "Password incorrect",
+				});
 		}
 
 		const senderID = req.body.senderID;
@@ -431,11 +479,6 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 }
 
-// Appease typescript request gods
-interface IPostUsersBody {
-	name: string,
-	email: string,
-}
 
 /**
  * Response type for post/users
