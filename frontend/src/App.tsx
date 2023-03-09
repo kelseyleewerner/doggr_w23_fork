@@ -9,17 +9,11 @@ import {NavMain} from "./components/NavMain";
 
 
 function App() {
-
 	return (
 		<AuthProvider>
 			<div className="App">
 				<NavMain/>
-				<Routes>
-					<Route path="/match" element={<ProtectedRoute><Match/></ProtectedRoute>}/>
-					<Route path="/login" element={<Login/>}/>
-					<Route path="/" element={<Home/>}/>
-					<Route path="/logout" element={<Logout/>}/>
-				</Routes></div>
+			</div>
 		</AuthProvider>
 	);
 }

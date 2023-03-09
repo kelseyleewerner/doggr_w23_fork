@@ -152,15 +152,17 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 			if (hashCompare) {
 				// User has authenticated successfully!
-				const token = app.jwt.sign({email});
+				const token = app.jwt.sign({email, id: theUser.id});
 				await reply.send({token});
 			} else {
 				app.log.info("Password validation failed");
-				await reply.status(401).send("Incorrect Password");
+				await reply.status(401)
+					.send("Incorrect Password");
 			}
 		} catch (err) {
 			app.log.error(err);
-			await reply.status(500).send("Error: " + err);
+			await reply.status(500)
+				.send("Error: " + err);
 		}
 	});
 
@@ -220,18 +222,31 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 	// HW2 additions (1-6)
 	app.get("/matches", {
 		onRequest: [app.auth]
-	},async (req, reply) => {
-		let matches = await app.db.match.find({
-			relations: ["matcher", "matchee"],
+	}, async (req, reply) => {
+
+		const {id} = req.user;
+		/* You can do all of this in one step via SQL, but we're trying to avoid that here
+		// We now have a problem -- our tokens are user-based, but our matches are profile-based.
+		// This is normally a place where we'd refactor the flow, but instead we'll just pick a random profile from each
+		*/
+		let myProfile = await app.db.profile.findOneOrFail({
+			where: {
+				user: id,
+			},
+			// Note here we're getting a subrelation
+			relations: ["user", "matches", "matches.matchee"],
 		});
 
-		reply.send(matches);
-
+		// for each match, get a profile
+		let matchedProfiles = myProfile.matches.map( (match) => match.matchee);
+		console.log("Matched profiles:");
+		console.log(matchedProfiles);
+		reply.send(matchedProfiles);
 	});
 
 	app.post("/match", {
 		onRequest: [app.auth]
-	},async (req: any, reply) => {
+	}, async (req: any, reply) => {
 		const myMatch = new Match();
 		myMatch.matcher = req.body.matcherID;
 		myMatch.matchee = req.body.matcheeID;
@@ -243,7 +258,7 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 	app.delete("/match", {
 		onRequest: [app.auth]
-	},async (req: any, reply) => {
+	}, async (req: any, reply) => {
 		const matcherID = req.body.matcherID;
 		const matcheeID = req.body.matcheeID;
 
@@ -315,14 +330,18 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 	// BONUS 1
 
-	app.get("/messages", async (req, reply) => {
+	app.get("/messages", {
+		onRequest: [app.auth]
+	}, async (req, reply) => {
 		let messages = await app.db.message.find({
 			relations: ['sender', 'recipient']
 		});
 		reply.send(messages);
 	});
 
-	app.get("/message/:id", async (req: any, reply: FastifyReply) => {
+	app.get("/message/:id", {
+		onRequest: [app.auth]
+	}, async (req: any, reply: FastifyReply) => {
 		const senderId = req.params.id;
 
 		let messages = await app.db.message.find({
@@ -371,7 +390,9 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 	 * @name post/message
 	 * @function
 	 */
-	app.post("/message", async (req: any, reply: FastifyReply) => {
+	app.post("/message", {
+		onRequest: [app.auth]
+	}, async (req: any, reply: FastifyReply) => {
 
 		const senderId = req.body.senderID;
 

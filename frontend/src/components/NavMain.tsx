@@ -1,23 +1,70 @@
-import {Link} from "react-router-dom";
+import {Link, Route, Routes} from "react-router-dom";
 import {useAuth} from "../services/AuthService";
+import {ProtectedRoute} from "./ProtectedRoute";
+import Match from "./Match";
+import {Login, Logout} from "./Login";
+import Home from "./Home";
+import {Matches} from "./Matches";
 
 export function NavMain() {
-	const {token} = useAuth();
+	return (
+		<>
+			<NavView/>
+			<NavRoutes/>
+		</>
+	);
+}
 
-	// Note below that a ternary comparison in JS against `token` as a string will evaluate
-	// to FALSE for all 3 cases: string is null, string is undefined, string is empty ("")
+function NavView() {
+	const {token} = useAuth();
 	return (
 		<nav>
 			<div className="menu">
-				<Link to="/">Home</Link>
+				<PublicLinksView/>
 				{
-					token  ?
-					<><Link to="/match">Match</Link>
-						<Link to="/logout">Logout</Link>
-					</>
-					: <Link to="/login">Login</Link>
+					token ?
+						  <AuthLinksView />
+						: <NoAuthLinksView/>
 				}
 			</div>
 		</nav>
+	);
+}
+
+function PublicLinksView() {
+	return (
+		<>
+			<Link to="/">Home</Link>
+		</>
+	)
+}
+
+function AuthLinksView() {
+	return (
+		<>
+			<Link to="/match">Local Bois</Link>
+			<Link to="/matches">Matches</Link>
+			<Link to="/logout">Logout</Link>
+		</>
+	)
+}
+
+function NoAuthLinksView() {
+	return (
+		<>
+			<Link to="/login">Login</Link>
+		</>
+	)
+}
+
+function NavRoutes() {
+	return (
+		<Routes>
+			<Route path="/match" element={<ProtectedRoute><Match/></ProtectedRoute>}/>
+			<Route path="/matches" element={<ProtectedRoute><Matches/></ProtectedRoute>}/>
+			<Route path="/login" element={<Login/>}/>
+			<Route path="/" element={<Home/>}/>
+			<Route path="/logout" element={<Logout/>}/>
+		</Routes>
 	);
 }
