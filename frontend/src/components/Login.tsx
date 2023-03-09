@@ -1,6 +1,7 @@
-import {useCallback, useContext, useState} from "react";
+import {useCallback, useContext, useEffect, useState} from "react";
 import React from "react";
 import {AuthContext, useAuth} from "../services/AuthService";
+import {useNavigate} from "react-router-dom";
 
 export function Login() {
 
@@ -51,3 +52,17 @@ export function Login() {
 			</div>
 		</div>);
 }
+
+export function Logout() {
+	// @ts-ignore
+	const {handleLogout} = useAuth();
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		handleLogout();
+		navigate("/");
+	})
+
+	return(<></>)
+}
+
