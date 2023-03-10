@@ -224,6 +224,8 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 		onRequest: [app.auth]
 	}, async (req, reply) => {
 
+		// We can type this in vite-env.d.ts like we did on the backend, but we'll skip for speed now
+		// @ts-ignore
 		const {id} = req.user;
 		/* You can do all of this in one step via SQL, but we're trying to avoid that here
 		// We now have a problem -- our tokens are user-based, but our matches are profile-based.

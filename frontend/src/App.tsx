@@ -1,14 +1,10 @@
-import './App.css';
-import {Link, Route, Routes, useNavigate} from 'react-router-dom';
-import Home from './components/Home';
-import Match from './components/Match';
-import {Login, Logout} from "./components/Login";
-import {AuthProvider, getLoginTokenFromServer, useAuth} from "./services/AuthService";
-import { ProtectedRoute } from './components/ProtectedRoute';
+import {AuthProvider} from "./services/AuthService";
 import {NavMain} from "./components/NavMain";
 
+// Note this is APP SPECIFIC css not included in our sitewide index.css
+import './App.css';
 
-function App() {
+export default function App() {
 	return (
 		<AuthProvider>
 			<div className="App">
@@ -17,5 +13,3 @@ function App() {
 		</AuthProvider>
 	);
 }
-
-export default App;
