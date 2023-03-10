@@ -33,7 +33,7 @@ export class ProfileSeeder extends Seeder {
 			newProfile.user = users[i];
 			newProfile.name = "Spot";
 			// Todo: Get rid of placeholder hard coded image link
-			newProfile.picture = "http://placeholder.com/mypic.jpeg";
+			newProfile.picture = "https://randomfox.ca/images/9.jpg";
 			await newProfile.save();
 			app.log.info("Finished seeding user: " + i);
 		}

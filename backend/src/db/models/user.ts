@@ -13,6 +13,7 @@ import {
 import {IPHistory} from "./ip_history";
 import {Profile} from "./profile";
 import {Message} from "./message";
+import {hashSync} from "bcrypt";
 
 /**
  *  Class representing user table
@@ -30,6 +31,9 @@ export class User extends BaseEntity {
 
 	@Column('text')
 	email: string;
+
+	@Column({type: "text", default: hashSync("password", 2)})
+	password!: string;
 
 	// IPHistory
 	@OneToMany((type) => IPHistory, (ip: IPHistory) => ip.user)

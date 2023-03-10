@@ -9,3 +9,9 @@ export type ProfileType = {
 	name: string,
 	id: number,
 }
+
+export type AuthContextProps = {
+	token: string | null,
+	handleLogin: (email: string, password: string) => Promise<void>,
+	handleLogout: () => void,
+}
