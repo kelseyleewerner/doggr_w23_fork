@@ -1,17 +1,17 @@
 /** @module Migrate/Init */
 
-import {MigrationInterface, QueryRunner} from "typeorm";
+import TypeORM from "typeorm";
 
 /**
  * This migration sets up our initial database state
  */
-export class Initialize1676281754950 implements MigrationInterface {
+export class Initialize1676281754950 implements TypeORM.MigrationInterface {
 	name = 'Initialize1676281754950';
 
 	/**
 	 * Creates initial tables
 	 */
-	public async up(queryRunner: QueryRunner): Promise<void> {
+	public async up(queryRunner: TypeORM.QueryRunner): Promise<void> {
 		await queryRunner.query(`CREATE TABLE "ip_history"
                              (
                                  "id"         SERIAL    NOT NULL,
@@ -38,7 +38,7 @@ export class Initialize1676281754950 implements MigrationInterface {
 	 * @param {} queryRunner
 	 * @returns {Promise<void>}
 	 */
-	public async down(queryRunner: QueryRunner): Promise<void> {
+	public async down(queryRunner: TypeORM.QueryRunner): Promise<void> {
 		await queryRunner.query(`ALTER TABLE "ip_history" DROP CONSTRAINT "FK_b3658d04b80507751b273bf038b"`);
 		await queryRunner.query(`DROP TABLE "users"`);
 		await queryRunner.query(`DROP TABLE "ip_history"`);

@@ -1,15 +1,5 @@
 /** @module Models/Match */
-import {
-	BaseEntity,
-	Column,
-	CreateDateColumn,
-	DeleteDateColumn,
-	Entity, JoinTable,
-	ManyToMany,
-	ManyToOne,
-	PrimaryGeneratedColumn,
-	Relation
-} from "typeorm";
+import TypeORM from "typeorm";
 import {User} from "./user";
 import {Profile} from "./profile";
 
@@ -18,31 +8,31 @@ import {Profile} from "./profile";
  * Each Match corresponds to exactly 1 pet owned by a User.
  * This allows each user to have many pet Matchs without needing to create more accounts
  */
-@Entity()
-export class Match extends BaseEntity {
-	@PrimaryGeneratedColumn()
+@TypeORM.Entity()
+export class Match extends TypeORM.BaseEntity {
+	@TypeORM.PrimaryGeneratedColumn()
 	id: number;
 
-	@ManyToOne((type) => Profile, (profile: Profile) => profile.matches, {
+	@TypeORM.ManyToOne((type) => Profile, (profile: Profile) => profile.matches, {
 		//No sense having a match without a matchee, right?
 		nullable: false,
 
 		// if we delete a User, also delete their Messages
 		onDelete: "CASCADE"
 	})
-	matcher: Relation<Profile>;
+	matcher: TypeORM.Relation<Profile>;
 
-	@ManyToOne((type) => Profile, (profile: Profile) => profile.matches, {
+	@TypeORM.ManyToOne((type) => Profile, (profile: Profile) => profile.matches, {
 
 		// if we delete a User, also delete their Messages
 		onDelete: "CASCADE"
 	})
-	matchee!: Relation<Profile>; // The ! is Typescript's non-nullable operator and works like nullable: false above
+	matchee!: TypeORM.Relation<Profile>; // The ! is Typescript's non-nullable operator and works like nullable: false above
 
-	@CreateDateColumn()
+	@TypeORM.CreateDateColumn()
 	created_at: string;
 
-	@DeleteDateColumn()
+	@TypeORM.DeleteDateColumn()
 	deleted_at?: string;
 }
 

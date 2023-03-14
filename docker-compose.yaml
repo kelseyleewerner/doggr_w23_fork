@@ -13,20 +13,26 @@ services:
       - POSTGRES_PASSWORD=doggr
       - POSTGRES_DB=doggr
     #network_mode: host
-#  backend:
-#    container_name: backend
-#    build: ./backend/
-#    restart: always
-#    ports:
-#      - "8080:8080"
-#    environment:
-#      # Vite takes care of most of this for us, but it's good practice for other backends
-#      - VITE_DB_HOST=postgres
-#      - VITE_IP_ADDR=0.0.0.0
-#      - VITE_PORT=8080
-#      - VITE_LOGS_DIR=logs/
-#    depends_on: #This is a lie
-#      - postgres
+  backend:
+    container_name: backend
+    build: ./backend/
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      # Vite takes care of most of this for us, but it's good practice for other backends
+      - VITE_DB_HOST=postgres
+      - VITE_IP_ADDR=0.0.0.0
+      - VITE_PORT=8080
+      - VITE_LOGS_DIR=logs/
+      - VITE_DB_PORT=5432
+      - VITE_DB_USER=doggr
+      - VITE_DB_PASS=doggr
+      - VITE_DB_NAME=doggr
+      - VITE_ADMIN_PASSWORD=adminpw
+      - VITE_JWT_SECRET=superSecret
+    depends_on: #This is a lie
+      - postgres
   auth_rs:
     container_name: auth_rs
     build: ./auth_rs/

@@ -1,7 +1,7 @@
 /** @module DatabasePlugin */
 import "reflect-metadata";
 import fp from "fastify-plugin";
-import {DataSource, Repository} from "typeorm";
+import TypeORM from "typeorm";
 import {User} from "../db/models/user";
 import {IPHistory} from "../db/models/ip_history";
 import {Match} from "../db/models/match";
@@ -27,13 +27,13 @@ declare module 'fastify' {
 }
 
 interface DBConfigOpts {
-	user: Repository<User>,
-	ip: Repository<IPHistory>,
-	profile: Repository<Profile>,
-	match: Repository<Match>,
+	user: TypeORM.Repository<User>,
+	ip: TypeORM.Repository<IPHistory>,
+	profile: TypeORM.Repository<Profile>,
+	match: TypeORM.Repository<Match>,
 
-	message: Repository<Message>,
-	connection: DataSource,
+	message: TypeORM.Repository<Message>,
+	connection: TypeORM.DataSource,
 }
 
 /**

@@ -1,14 +1,5 @@
 /** @module Models/User */
-import {
-	BaseEntity,
-	Column,
-	CreateDateColumn,
-	Entity,
-	OneToMany,
-	PrimaryGeneratedColumn,
-	Relation,
-	UpdateDateColumn
-} from "typeorm";
+import TypeORM from "typeorm";
 
 import {IPHistory} from "./ip_history";
 import {Profile} from "./profile";
@@ -18,47 +9,47 @@ import {hashSync} from "bcrypt";
 /**
  *  Class representing user table
  */
-@Entity({name: "users"})
-export class User extends BaseEntity {
-	@PrimaryGeneratedColumn()
+@TypeORM.Entity({name: "users"})
+export class User extends TypeORM.BaseEntity {
+	@TypeORM.PrimaryGeneratedColumn()
 	id: number;
 
-	@Column({
+	@TypeORM.Column({
 		length: 100,
 		type: "varchar"
 	})
 	name: string;
 
-	@Column('text')
+	@TypeORM.Column('text')
 	email: string;
 
-	@Column({type: "text", default: hashSync("password", 2)})
+	@TypeORM.Column({type: "text", default: hashSync("password", 2)})
 	password!: string;
 
 	// IPHistory
-	@OneToMany((type) => IPHistory, (ip: IPHistory) => ip.user)
-	ips: Relation<IPHistory[]>;
+	@TypeORM.OneToMany((type) => IPHistory, (ip: IPHistory) => ip.user)
+	ips: TypeORM.Relation<IPHistory[]>;
 
 	// Profile
-	@OneToMany((type) => Profile, (p: Profile) => p.user)
-	profiles: Relation<Profile[]>;
+	@TypeORM.OneToMany((type) => Profile, (p: Profile) => p.user)
+	profiles: TypeORM.Relation<Profile[]>;
 
 	// Message - Sender
-	@OneToMany((type) => Message, (ms: Message) => ms.sender)
-	sent: Relation<Message[]>;
+	@TypeORM.OneToMany((type) => Message, (ms: Message) => ms.sender)
+	sent: TypeORM.Relation<Message[]>;
 
 	// Message - Recipient
-	@OneToMany((type) => Message, (mr: Message) => mr.recipient)
-	inbox: Relation<Message[]>;
+	@TypeORM.OneToMany((type) => Message, (mr: Message) => mr.recipient)
+	inbox: TypeORM.Relation<Message[]>;
 
-	@Column({
+	@TypeORM.Column({
 		default: 0
 	})
 	badwords!: number;
 
-	@CreateDateColumn()
+	@TypeORM.CreateDateColumn()
 	created_at: string;
 
-	@UpdateDateColumn()
+	@TypeORM.UpdateDateColumn()
 	updated_at: string;
 }
