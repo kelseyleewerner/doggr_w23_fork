@@ -1,10 +1,10 @@
 use anyhow::Result as AnyResult;
-use auth_rs::models::User;
+
 use dotenvy::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use std::env;
 
+use auth_rs::EnvOptions;
 use axum::Extension;
 use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};
@@ -18,22 +18,28 @@ use routes::routes;
 
 #[tokio::main]
 async fn main() -> AnyResult<()> {
+    // Just like javascript!
     dotenv().ok();
+    // This inits our logging
     tracing_subscriber::fmt::init();
     trace!("Application initialized.");
+
+    // This runs our listen server
     run().await.unwrap();
     Ok(())
 }
 
 async fn run() -> AnyResult<()> {
+    // Create a database connection
     let conn = establish_connection().await?;
-    test_conn(&conn).await?;
+    // Same CORS middleware we've seen in express and Fastify
     let cors = CorsLayer::new().allow_origin(Any);
-
+    // Same as our fastify Register plugins
     let app = routes().layer(cors).layer(Extension(conn));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3333));
     info!("Listening on {}", addr);
+    // Same as our Node listen...
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await?;
@@ -42,28 +48,16 @@ async fn run() -> AnyResult<()> {
 }
 
 pub async fn establish_connection() -> AnyResult<PgPool> {
-    dotenv().ok();
-    info!("Establishing connection");
+    info!("Establishing database connection...");
 
-    let db_url = env::var("DATABASE_URL")?;
-
+    let env_opts = EnvOptions::new();
+    // Create a "pool" of multiple connections that will sit around waiting for work
     let pool = PgPoolOptions::new()
         .max_connections(10)
-        .connect(&db_url)
+        .connect(&env_opts.database_url)
         .await?;
 
-    info!("Conn established");
+    info!("Database connection established!");
 
     Ok(pool)
-}
-
-async fn test_conn(conn: &PgPool) -> AnyResult<User> {
-    info!("Testing connection");
-    let row: User = sqlx::query_as::<_, User>("SELECT * from users where users.email=$1")
-        .bind("email@email.com")
-        .fetch_one(conn)
-        .await?;
-
-    info!("User email/pw is: {} - {}", row.email, row.password);
-    Ok(row)
 }

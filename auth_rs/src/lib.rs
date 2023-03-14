@@ -1,16 +1,12 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use jsonwebtoken::{DecodingKey, EncodingKey};
-use std::fmt;
-use std::fmt::Formatter;
-use thiserror::Error;
-
 use serde::{Deserialize, Serialize};
 
 // advanced dotenv that lets us directly access .env file options programmically
 pub struct EnvOptions {
-    database_url: String,
-    auth_secret: String,
+    pub database_url: String,
+    pub auth_secret: String,
 }
 
 impl EnvOptions {
@@ -30,12 +26,15 @@ pub struct Claims {
 
 // We're being cheeky and handling our own JWT Tokens this time for fun
 pub struct JWTKeys {
+    // This will be how we encode the token
     pub encoding: EncodingKey,
+    // This is how we'd decrypt, but we actually don't validate them here ever, so this will go unused
     pub decoding: DecodingKey,
 }
 
 impl JWTKeys {
     pub fn new() -> Self {
+        // Just like our auth.ts secret...MUST be the same!
         let secret = EnvOptions::new().auth_secret.into_bytes();
 
         Self {
@@ -50,18 +49,23 @@ pub mod models {
     use serde::{Deserialize, Serialize};
 
     #[derive(sqlx::FromRow, Serialize, Deserialize)]
+    // This will hold our actual user info corresponding to the database info
     pub struct User {
         pub email: String,
         pub password: String,
     }
 
+    // This is our type which we return, having filled it with a token produced from JWTKeys
     #[derive(Serialize, Deserialize)]
     pub struct LoggedInUser {
         pub token: String,
     }
 }
 
-// Make our own error that wraps `anyhow::Error`.
+// IGNORE ALL BELOW THIS, I REPEAT IGNORE ME ABANDON HOPE ALL YE WHO ENTER HERE
+// THIS IS THE ONLY PLACE IN THE MICROSERVICE WHERE RUST'S COMPLEXITY ISN'T HIDDEN
+// LAST WARNING GO BACK NOW
+// Error type wrapper for convenience
 pub struct AppError(anyhow::Error);
 
 // Tell axum how to convert `AppError` into a response.
