@@ -37,7 +37,9 @@ async fn run() -> AnyResult<()> {
     // Same as our fastify Register plugins
     let app = routes().layer(cors).layer(Extension(conn));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3333));
+    // Since this is a microservice hidden behind docker, we can force it to
+    // bind to ANYTHING we want safely
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3333));
     info!("Listening on {}", addr);
     // Same as our Node listen...
     axum::Server::bind(&addr)
