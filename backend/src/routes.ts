@@ -7,6 +7,7 @@ import {Match} from "./db/models/match";
 import {Message} from "./db/models/message";
 import {readFileSync} from "node:fs";
 import {compare, hashSync} from "bcrypt";
+import {UploadFileToMinio} from "./lib/minio";
 
 /**
  * App plugin where we construct our routes
@@ -181,12 +182,16 @@ export async function doggr_routes(app: FastifyInstance): Promise<void> {
 
 	app.post("/profiles", async (req: any, reply: FastifyReply) => {
 
-		const {name} = req.body;
+		//const {name} = req.fo;
+
+		// Get file from request
+		const data = await req.file();
+		let upload = await UploadFileToMinio(data);
 
 		const myUser = await app.db.user.findOneByOrFail({});
 
 		const newProfile = new Profile();
-		newProfile.name = name;
+		newProfile.name = "George";
 		newProfile.picture = "ph.jpg";
 		newProfile.user = myUser;
 

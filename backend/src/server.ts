@@ -11,6 +11,7 @@ import {doggr_routes} from "./routes";
 import DbPlugin from "./plugins/database";
 import {AuthPlugin} from "./plugins/auth";
 import cors from "@fastify/cors";
+import multipart from '@fastify/multipart';
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -30,6 +31,8 @@ export async function buildApp(useLogging: boolean) {
 		: Fastify({logger: false});
 
 	try {
+
+		await app.register(multipart);
 
 		await app.register(cors, {
 			origin: (origin, cb) => {
