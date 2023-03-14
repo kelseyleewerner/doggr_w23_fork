@@ -73,5 +73,6 @@ services:
 
 volumes:
   minio_data:
+    driver: local
   db:
     driver: local
