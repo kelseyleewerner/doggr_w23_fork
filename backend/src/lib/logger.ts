@@ -22,7 +22,8 @@ const logger = import.meta.env.DEV
 				ignore: "pid,hostname",
 			},
 		},
-		file: logDir + "/dev-logs.log",
+		//file: logDir + "/dev-logs.log",
+		test: false,
 	}
 	: {
 		transport: {
@@ -33,8 +34,11 @@ const logger = import.meta.env.DEV
 				ignore: "pid,hostname",
 			},
 		},
-		file: logDir + "/dev-logs.log",
+		//file: logDir + "/dev-logs.log",
+		test: false
 	};
+
+export default logger;
 
 // : {
 // 	level: "warn",
