@@ -17,7 +17,7 @@ services:
       - VITE_DB_NAME=doggr
       - VITE_ADMIN_PASSWORD=adminpw
       - VITE_JWT_SECRET=superSecret
-    depends_on: #This is a lie
+    depends_on:
       - postgres
 
   frontend:
