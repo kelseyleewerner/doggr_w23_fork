@@ -1,15 +1,6 @@
 /** @module Models/Message */
-import {
-	BaseEntity,
-	Column,
-	CreateDateColumn,
-	DeleteDateColumn,
-	Entity,
-	ManyToOne,
-	PrimaryGeneratedColumn,
-	Relation
-} from "typeorm";
-import { SoftDeleteQueryBuilder } from "typeorm/query-builder/SoftDeleteQueryBuilder";
+import TypeORM from "typeorm";
+
 import { User } from "./user";
 
 /**
@@ -17,35 +8,35 @@ import { User } from "./user";
  * Each message consists of a sender, a recipient, and a message.
  * Senders and recipients are users.
  */
-@Entity()
-export class Message extends BaseEntity {
-	@PrimaryGeneratedColumn()
+@TypeORM.Entity()
+export class Message extends TypeORM.BaseEntity {
+	@TypeORM.PrimaryGeneratedColumn()
 	id!: number;
 
-	@ManyToOne((type) => User, (sender: User) => sender.sent, {
+	@TypeORM.ManyToOne((type) => User, (sender: User) => sender.sent, {
 		// Create a user if you start with a message
 		cascade: ["insert"],
 		// if we delete a User, also delete their Messages
 		onDelete: "CASCADE"
 	})
-	sender!: Relation<User>;
+	sender!: TypeORM.Relation<User>;
 
-	@ManyToOne((type) => User, (recipient: User) => recipient.inbox, {
+	@TypeORM.ManyToOne((type) => User, (recipient: User) => recipient.inbox, {
 		// Create a user if you start with a Message
 		cascade: ["insert"],
 		// if we delete a User, also delete their Messages
 		onDelete: "CASCADE"
 	})
-	recipient!: Relation<User>;
+	recipient!: TypeORM.Relation<User>;
 
-	@Column('text')
+	@TypeORM.Column('text')
 	message!: string;
 
-	@CreateDateColumn()
+	@TypeORM.CreateDateColumn()
 	created_at!: string;
 
 	// "Soft-delete" by setting time of "deletion"
-	@DeleteDateColumn()
+	@TypeORM.DeleteDateColumn()
 	deleted_at?: string;
 }
 

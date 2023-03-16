@@ -25,9 +25,21 @@ const logger = import.meta.env.DEV
 		file: logDir + "/dev-logs.log",
 	}
 	: {
-		level: "warn",
-		file: logDir + "/warn-logs.log",
+		transport: {
+
+			target: "pino-pretty",
+			options: {
+				translateTime: "HH:MM:ss.l",
+				ignore: "pid,hostname",
+			},
+		},
+		file: logDir + "/dev-logs.log",
 	};
+
+// : {
+// 	level: "warn",
+// 	file: logDir + "/warn-logs.log",
+// };
 
 export default logger;
 

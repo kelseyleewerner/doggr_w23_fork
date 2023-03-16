@@ -97,7 +97,7 @@ function getTokenFromStorage() {
 }
 
 // This is a single abstraction layer to tuck away the creation of the React context itself
-const AuthContext = createContext<AuthContextProps | null>(null);
+export const AuthContext = createContext<AuthContextProps | null>(null);
 
 // This is a SECOND abstraction layer to also tuck away the usage of the Context
 // Note this is the ONLY export from all of Auth except for the Provider component itself

@@ -5,6 +5,7 @@ import Match from "./Match";
 import {Login, Logout} from "./Login";
 import Home from "./Home";
 import {Matches} from "./Matches";
+import {CreateProfile} from "./CreateProfile";
 
 export function NavMain() {
 	return (
@@ -44,6 +45,7 @@ function AuthLinksView() {
 		<>
 			<Link to="/match">Local Bois</Link>
 			<Link to="/matches">Matches</Link>
+			<Link to="/profile">New Profile</Link>
 			<Link to="/logout">Logout</Link>
 		</>
 	)
@@ -65,6 +67,7 @@ function NavRoutes() {
 			<Route path="/login" element={<Login/>}/>
 			<Route path="/" element={<Home/>}/>
 			<Route path="/logout" element={<Logout/>}/>
+			<Route path="/profile" element={<CreateProfile/>}/>
 		</Routes>
 	);
 }

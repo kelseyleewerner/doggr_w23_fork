@@ -11,6 +11,10 @@ import {doggr_routes} from "./routes";
 import DbPlugin from "./plugins/database";
 import {AuthPlugin} from "./plugins/auth";
 import cors from "@fastify/cors";
+import multipart from '@fastify/multipart';
+import dotenv from "dotenv";
+dotenv.config();
+
 
 /**
  * This is our main "Create App" function.  Note that it does NOT start the server, this only creates it
@@ -28,20 +32,11 @@ export async function buildApp(useLogging: boolean) {
 
 	try {
 
+		await app.register(multipart);
+
 		await app.register(cors, {
 			origin: (origin, cb) => {
-				// If we're in dev mode, no CORS necessary, let *everything* pass
-				if (import.meta.env.DEV) {
-					cb(null, true);
-					return;  }
-				const hostname = new URL(origin).hostname;
-				// Otherwise check to see if hostnames match, or are local connections and allow those too
-				if (hostname === "localhost" || hostname === '127.0.0.1' || hostname === import.meta.env.VITE_IP_ADDR) {
-					//  Request from localhost will pass
-					cb(null, true);
-					return;  }
-				// Generate an error on other origins, disabling access
-				cb(new Error("Not allowed"), false);
+				cb(null, true);
 			}
 		});
 
@@ -80,15 +75,23 @@ export async function buildApp(useLogging: boolean) {
  */
 export async function listen(app: FastifyInstance) {
 	try {
+
+		let host = import.meta.env.VITE_IP_ADDR;
+		let port = Number(import.meta.env.VITE_PORT);
+
+		console.log(`In listen with host:port: ${host}:${port}`);
 		await app.listen({ // Config object is optional and defaults to { host: 'localhost', port: 3000 }
-			host: import.meta.env.VITE_IP_ADDR,
-			port: Number(import.meta.env.VITE_PORT),
+			host,
+			port,
 		}, (err: any) => {  // Listen handler doesn't need to do much except report errors!
+
 			if (err) {
+				console.log("1");
 				app.log.error(err);
 			}
 		});
 	} catch (err) { // This will catch any errors that further bubble up from listen(), should be unnecessary
+		console.log("2");
 		app.log.error(err);
 	}
 }

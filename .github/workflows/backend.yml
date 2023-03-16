@@ -8,9 +8,72 @@ on:
   workflow_dispatch:
 
 jobs:
+  frontend_testing:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      VITE_BACKEND_IP: backend
+      VITE_BACKEND_PORT: 8080
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout repository master branch
+
+      - uses: actions/setup-node@v3
+        name: Setup Node Environment
+        with:
+          node-version: 18
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT  
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-  
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run Tests
+        run: pnpm test
+
   backend_testing:
     runs-on: ubuntu-latest
-
+    env:
+      VITE_DB_USER: doggr
+      VITE_DB_PASS: doggr
+      VITE_DB_NAME: doggr
+      VITE_IP_ADDR: 0.0.0.0
+      VITE_PORT: 8080
+      VITE_ADMINISTRATOR_PASSWORD: admin
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: doggr
+          POSTGRES_PASSWORD: doggr
+        options: >-
+          --health-cmd pg_isready  
+          --health-interval 10s  
+          --health-timeout 5s  
+          --health-retries 5
+        ports:
+          - 5432:5432
     defaults:
       run:
         working-directory: backend
@@ -21,18 +84,39 @@ jobs:
 
       - name: Install Node.js
         uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
       - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
         with:
-          version: 6.0.2
-          run_install: |
-            - recursive: true
-              args: [--frozen-lockfile, --strict-peer-dependencies]
-            - args: [--global, typescript]
+          version: 7
+          run_install: false
 
-      - name: Install depenencies
+      - name: Get pnpm dependency directory to put into cache for future jobs
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT  
+
+      - uses: actions/cache@v3
+        name: Actually create the Github Actions cache for those dependencies
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-  
+
+      - name: Install dependencies
         run: pnpm install
 
+      - name: Run Migrations
+        run: pnpm migration:run
+
+      - name: Seed database
+        run: pnpm seedCI
+
       - name: Run tests
-        run: pnpm test
+        run: pnpm testCI
 

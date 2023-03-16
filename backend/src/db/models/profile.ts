@@ -1,15 +1,5 @@
 /** @module Models/Profile */
-import {
-	BaseEntity,
-	Column,
-	CreateDateColumn,
-	Entity, JoinTable,
-	ManyToMany,
-	OneToMany,
-	ManyToOne,
-	PrimaryGeneratedColumn,
-	Relation
-} from "typeorm";
+import TypeORM from "typeorm";
 import {User} from "./user";
 import {Match} from "./match";
 
@@ -18,38 +8,38 @@ import {Match} from "./match";
  * Each profile corresponds to exactly 1 pet owned by a User.
  * This allows each user to have many pet profiles without needing to create more accounts
  */
-@Entity()
-export class Profile extends BaseEntity {
-	@PrimaryGeneratedColumn()
+@TypeORM.Entity()
+export class Profile extends TypeORM.BaseEntity {
+	@TypeORM.PrimaryGeneratedColumn()
 	id: number;
 
-	@Column()
+	@TypeORM.Column()
 	name: string;
 
-	@Column()
+	@TypeORM.Column()
 	picture: string;
 
-	@ManyToOne((type) => User, (user: User) => user.profiles, {
+	@TypeORM.ManyToOne((type) => User, (user: User) => user.profiles, {
 		cascade: true,
 		onDelete: "CASCADE"
 	})
-	user: Relation<User>;
+	user: TypeORM.Relation<User>;
 
-	@OneToMany((type) => Match, (match) => match.matcher, {
+	@TypeORM.OneToMany((type) => Match, (match) => match.matcher, {
 		cascade: true,
 		onDelete: "CASCADE"
 	})
-	matches: Relation<Match[]>;
+	matches: TypeORM.Relation<Match[]>;
 
-	@OneToMany((type) => Match, (match) => match.matchee, {
+	@TypeORM.OneToMany((type) => Match, (match) => match.matchee, {
 		//adding an IPHistory will also add associated User if it is new, somewhat useless in this example
 		cascade: true,
 		// if we delete a profile, remove their matches as well
 		onDelete: "CASCADE"
 	})
-	matchedBy: Relation<Match[]>;
+	matchedBy: TypeORM.Relation<Match[]>;
 
-	@CreateDateColumn()
+	@TypeORM.CreateDateColumn()
 	created_at: string;
 }
 
