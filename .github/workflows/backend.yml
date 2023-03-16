@@ -120,3 +120,21 @@ jobs:
       - name: Run tests
         run: pnpm testCI
 
+  deploy-to-server:
+    runs-on: ubuntu-latest
+    needs: [ frontend_testing, backend_testing ]
+    steps:
+      - uses: appleboy/ssh-action@master
+        with:
+          host: 68.183.25.209
+          username: kc
+          key: ${{ secrets.PRIVATE_KEY }}
+        script: |
+          cd /home/kc/workspace
+          rm -rf ./doggr
+          git clone https://github.com/CaseyBaileyPDX/doggr_w23.git doggr  
+          cd doggr
+          docker compose down
+          docker compose build --no-cache --compress
+          docker compose up -d
+          
