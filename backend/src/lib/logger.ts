@@ -40,12 +40,6 @@ const logger = import.meta.env.DEV
 
 export default logger;
 
-// : {
-// 	level: "warn",
-// 	file: logDir + "/warn-logs.log",
-// };
-
-export default logger;
 
 // in-source testing
 if (import.meta.vitest) {
